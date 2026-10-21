@@ -18,7 +18,7 @@
         }
     </script>
     <style>
-        :root { --theme-color: #ec4899; } /* 初期カラー：ピンク */
+        :root { --theme-color: #ec4899; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
@@ -43,6 +43,19 @@
     </header>
 
     <main class="max-w-2xl mx-auto px-4 mt-6 space-y-6">
+
+        <!-- 0. 自動更新：最新ライブ・ツアー日程情報 -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <h2 class="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
+                <span class="w-2 h-5 bg-themeColor rounded-full transition-colors duration-300"></span>
+                最新ライブ・ツアー日程（自動更新）
+            </h2>
+            <p class="text-xs text-slate-500 mb-4">クラウドで毎日更新される最新の公演スケジュールです。</p>
+
+            <div id="eventList" class="space-y-2 text-sm">
+                <p class="text-slate-400 text-xs">日程情報を読み込み中...</p>
+            </div>
+        </section>
 
         <!-- 1. 遠征・参戦予算計算 -->
         <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
@@ -77,7 +90,6 @@
                     </div>
                 </div>
 
-                <!-- 合計結果 -->
                 <div class="mt-6 p-4 rounded-xl bg-slate-50 border border-slate-100 flex justify-between items-center">
                     <span class="font-bold text-slate-700">遠征トータル想定費用</span>
                     <span id="totalDisplay" class="text-2xl font-black text-themeColor transition-colors duration-300">¥0</span>
@@ -85,7 +97,7 @@
             </div>
         </section>
 
-        <!-- 2. 参戦持ち物チェックリスト（localStorageで自動保存） -->
+        <!-- 2. 参戦持ち物チェックリスト -->
         <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
             <h2 class="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
                 <span class="w-2 h-5 bg-themeColor rounded-full transition-colors duration-300"></span>
@@ -93,34 +105,54 @@
             </h2>
             <p class="text-xs text-slate-500 mb-4">チェック状態は自動保存されるので、次回も続きから使えます。</p>
 
-            <div id="checklist" class="space-y-2 text-sm">
-                <!-- JavaScriptで生成 -->
-            </div>
+            <div id="checklist" class="space-y-2 text-sm"></div>
         </section>
 
     </main>
 
     <script>
-        // 初期持ち物リスト
         const defaultItems = [
             "デジチケ表示用スマホ", "身分証明書", "ファンクラブ会員証",
             "ペンライト（予備電池含む）", "アクスタ・ぬい", "うちわ・カンペうちわ",
             "モバイルバッテリー", "双眼鏡", "双眼鏡用防振電池", "折りたたみ傘"
         ];
 
-        // ページ読み込み時の処理
         window.onload = function() {
             loadSavedData();
             calculateTotal();
+            loadEvents();
         };
 
-        // カラー切り替え
+        // イベント情報の取得（events.jsonを自動読み込み）
+        function loadEvents() {
+            fetch('./events.json')
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('eventList');
+                    container.innerHTML = '';
+                    data.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = "flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100";
+                        div.innerHTML = `
+                            <div>
+                                <span class="text-xs font-bold text-slate-400 block">${item.date}</span>
+                                <span class="font-bold text-slate-800">${item.title}</span>
+                            </div>
+                            <span class="text-xs px-2.5 py-1 rounded-full font-bold bg-pink-100 text-pink-600">${item.status}</span>
+                        `;
+                        container.appendChild(div);
+                    });
+                })
+                .catch(err => {
+                    document.getElementById('eventList').innerHTML = '<p class="text-xs text-slate-400">最新イベント情報を準備中です。</p>';
+                });
+        }
+
         function changeColor(colorHex) {
             document.documentElement.style.setProperty('--theme-color', colorHex);
             localStorage.setItem('userThemeColor', colorHex);
         }
 
-        // 費用計算＆保存
         function calculateTotal() {
             const ticket = Number(document.getElementById('ticketCost').value) || 0;
             const transport = Number(document.getElementById('transportCost').value) || 0;
@@ -131,18 +163,14 @@
             const total = ticket + transport + hotel + goods + other;
             document.getElementById('totalDisplay').innerText = `¥${total.toLocaleString()}`;
 
-            // 入力データを保存
             const costs = { ticket, transport, hotel, goods, other };
             localStorage.setItem('userCosts', JSON.stringify(costs));
         }
 
-        // 保存されたデータの読み込み
         function loadSavedData() {
-            // テーマカラー復元
             const savedColor = localStorage.getItem('userThemeColor');
             if (savedColor) changeColor(savedColor);
 
-            // 金額復元
             const savedCosts = JSON.parse(localStorage.getItem('userCosts') || '{}');
             if (savedCosts.ticket) document.getElementById('ticketCost').value = savedCosts.ticket;
             if (savedCosts.transport) document.getElementById('transportCost').value = savedCosts.transport;
@@ -150,7 +178,6 @@
             if (savedCosts.goods) document.getElementById('goodsCost').value = savedCosts.goods;
             if (savedCosts.other) document.getElementById('otherCost').value = savedCosts.other;
 
-            // チェックリスト生成＆復元
             const savedChecks = JSON.parse(localStorage.getItem('userChecks') || '{}');
             const checklistContainer = document.getElementById('checklist');
             
@@ -166,7 +193,6 @@
             });
         }
 
-        // チェック状態の保存
         function saveCheck(index) {
             const savedChecks = JSON.parse(localStorage.getItem('userChecks') || '{}');
             savedChecks[index] = document.getElementById(`item-${index}`).checked;
