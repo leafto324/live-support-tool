@@ -1,4 +1,26 @@
-function submitRequest() {
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ライブサポートツール - グループ追加リクエスト</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+        <h1 class="text-xl font-bold mb-4 text-slate-800">推しグループ追加リクエスト</h1>
+        <p class="text-sm text-slate-600 mb-4">追加してほしいグループ名を入力して送信してください。</p>
+        
+        <input type="text" id="requestInput" placeholder="例: グループ名" class="w-full border border-slate-300 p-2 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        
+        <button onclick="submitRequest()" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition">リクエストを送信</button>
+        
+        <p id="requestMsg" class="mt-4 text-sm text-center hidden"></p>
+    </div>
+
+    <script>
+        function submitRequest() {
             const input = document.getElementById('requestInput');
             const value = input.value.trim();
 
@@ -23,6 +45,7 @@ function submitRequest() {
             })
             .then(() => {
                 msgElement.textContent = "リクエストを送信しました！確認後に反映されます。";
+                msgElement.className = "mt-4 text-sm text-center text-green-600";
                 input.value = '';
                 setTimeout(() => {
                     msgElement.classList.add('hidden');
@@ -33,3 +56,6 @@ function submitRequest() {
                 msgElement.classList.add('hidden');
             });
         }
+    </script>
+</body>
+</html>
