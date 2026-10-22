@@ -18,13 +18,23 @@
         }
     </script>
     <style>
-        :root { --theme-color: #ec4899; }
+        :root { 
+            --theme-color: #ec4899; 
+            --bg-zoom: 100%;
+            --bg-x: 50%;
+            --bg-y: 50%;
+        }
+        #appHeader {
+            background-size: var(--bg-zoom);
+            background-position: var(--bg-x) var(--bg-y);
+            background-repeat: no-repeat;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
 
     <!-- ヘッダー -->
-    <header id="appHeader" class="text-white py-8 px-4 shadow-lg transition-all duration-300 relative bg-cover bg-center" style="background-color: var(--theme-color);">
+    <header id="appHeader" class="text-white py-8 px-4 shadow-lg transition-all duration-300 relative" style="background-color: var(--theme-color);">
         <div id="headerOverlay" class="absolute inset-0 bg-black/30 transition-all"></div>
         <div class="max-w-2xl mx-auto relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -33,13 +43,16 @@
             </div>
             
             <div class="flex flex-col items-end gap-2">
+                <!-- 画像変更 ＆ 位置微調整ボタン -->
                 <div class="flex items-center gap-2">
                     <label class="cursor-pointer bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-bold backdrop-blur-sm transition flex items-center gap-1.5 shadow-sm">
                         <span>📷 推し画像に変更</span>
                         <input type="file" accept="image/*" onchange="changeHeaderImage(event)" class="hidden">
                     </label>
+                    <button id="adjustImgBtn" onclick="toggleImgControls()" class="hidden text-xs bg-white/20 hover:bg-white/30 px-2.5 py-1.5 rounded-lg font-bold backdrop-blur-sm transition">⚙️ 位置調整</button>
                     <button onclick="resetHeaderImage()" class="text-xs text-white/80 hover:text-white underline">標準に戻す</button>
                 </div>
+                <!-- 推しカラー切り替え -->
                 <div class="flex items-center gap-1.5">
                     <span class="text-xs opacity-90">アクセント:</span>
                     <div class="flex gap-1 bg-white/20 p-1 rounded-lg backdrop-blur-sm">
@@ -50,6 +63,28 @@
                         <button onclick="changeColor('#a855f7')" class="w-5 h-5 rounded-full bg-purple-500 border-2 border-white" title="紫"></button>
                         <button onclick="changeColor('#22c55e')" class="w-5 h-5 rounded-full bg-green-500 border-2 border-white" title="緑"></button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 画像位置・拡大縮小コントロールパネル -->
+        <div id="imgControls" class="hidden max-w-2xl mx-auto mt-4 pt-3 border-t border-white/20 relative z-10 text-xs space-y-2 bg-black/40 p-3 rounded-xl backdrop-blur-md">
+            <div class="flex items-center justify-between font-bold">
+                <span>🖼️ 背景画像の位置・サイズ調整</span>
+                <button onclick="toggleImgControls()" class="text-white/80 hover:text-white">✕ 閉じる</button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-[10px] opacity-80 mb-1">拡大・縮小 (ズーム)</label>
+                    <input type="range" id="zoomRange" min="50" max="250" value="100" oninput="updateImagePosition()" class="w-full accent-pink-400">
+                </div>
+                <div>
+                    <label class="block text-[10px] opacity-80 mb-1">左右位置 (X軸)</label>
+                    <input type="range" id="xRange" min="0" max="100" value="50" oninput="updateImagePosition()" class="w-full accent-pink-400">
+                </div>
+                <div>
+                    <label class="block text-[10px] opacity-80 mb-1">上下位置 (Y軸)</label>
+                    <input type="range" id="yRange" min="0" max="100" value="50" oninput="updateImagePosition()" class="w-full accent-pink-400">
                 </div>
             </div>
         </div>
@@ -185,13 +220,36 @@
             const header = document.getElementById('appHeader');
             header.style.backgroundImage = `url('${url}')`;
             document.getElementById('headerOverlay').className = "absolute inset-0 bg-black/50 transition-all";
+            document.getElementById('adjustImgBtn').classList.remove('hidden');
         }
 
         function resetHeaderImage() {
             const header = document.getElementById('appHeader');
             header.style.backgroundImage = 'none';
             document.getElementById('headerOverlay').className = "absolute inset-0 bg-black/30 transition-all";
+            document.getElementById('adjustImgBtn').classList.add('hidden');
+            document.getElementById('imgControls').classList.add('hidden');
+            
             localStorage.removeItem('userHeaderImg');
+            localStorage.removeItem('userImgPos');
+        }
+
+        function toggleImgControls() {
+            const controls = document.getElementById('imgControls');
+            controls.classList.toggle('hidden');
+        }
+
+        function updateImagePosition() {
+            const zoom = document.getElementById('zoomRange').value;
+            const x = document.getElementById('xRange').value;
+            const y = document.getElementById('yRange').value;
+
+            document.documentElement.style.setProperty('--bg-zoom', `${zoom}%`);
+            document.documentElement.style.setProperty('--bg-x', `${x}%`);
+            document.documentElement.style.setProperty('--bg-y', `${y}%`);
+
+            const posData = { zoom, x, y };
+            localStorage.setItem('userImgPos', JSON.stringify(posData));
         }
 
         function saveOrigin() {
@@ -401,14 +459,22 @@
         }
 
         function loadSavedData() {
-            const savedOrigin = localStorage.getItem('userOrigin');
-            if (savedOrigin) {
-                document.getElementById('originInput').value = savedOrigin;
-            }
-
             const savedHeaderImg = localStorage.getItem('userHeaderImg');
             if (savedHeaderImg) {
                 applyHeaderImage(savedHeaderImg);
+            }
+
+            const savedPos = JSON.parse(localStorage.getItem('userImgPos') || '{}');
+            if (savedPos.zoom) {
+                document.getElementById('zoomRange').value = savedPos.zoom;
+                document.getElementById('xRange').value = savedPos.x;
+                document.getElementById('yRange').value = savedPos.y;
+                updateImagePosition();
+            }
+
+            const savedOrigin = localStorage.getItem('userOrigin');
+            if (savedOrigin) {
+                document.getElementById('originInput').value = savedOrigin;
             }
 
             const savedColor = localStorage.getItem('userThemeColor');
