@@ -420,6 +420,7 @@
             });
         }
 
+        // 推しグループ追加リクエスト機能（GAS連携版）
         function submitRequest() {
             const input = document.getElementById('requestInput');
             const value = input.value.trim();
@@ -429,18 +430,33 @@
                 return;
             }
 
-            const repoUrl = "https://github.com/leafto324/live-support-tool/issues/new";
-            const issueTitle = encodeURIComponent(`【グループ追加リクエスト】${value}`);
-            const issueBody = encodeURIComponent(`新規グループ追加のリクエストがありました。\n\n■グループ名: ${value}`);
-            
-            window.open(`${repoUrl}?title=${issueTitle}&body=${issueBody}`, '_blank');
+            const gasUrl = "https://script.google.com/macros/s/AKfycbyTMJGRFka6NZq9xokH1KwCt74xkx5yoiW8KQmrcNny0CVohQp_723zYXNLIXliUMnDUA/exec";
 
-            const msg = document.getElementById('requestMsg');
-            msg.classList.remove('hidden');
-            input.value = '';
-            setTimeout(() => {
-                msg.classList.add('hidden');
-            }, 5000);
+            const msgElement = document.getElementById('requestMsg');
+            msgElement.textContent = "送信中...";
+            msgElement.className = "text-xs font-bold text-slate-500";
+            msgElement.classList.remove('hidden');
+
+            const formData = new URLSearchParams();
+            formData.append("groupName", value);
+
+            fetch(gasUrl, {
+                method: "POST",
+                mode: "no-cors",
+                body: formData
+            })
+            .then(() => {
+                msgElement.textContent = "リクエストを送信しました！確認後に反映されます。";
+                msgElement.className = "text-xs font-bold text-green-600";
+                input.value = '';
+                setTimeout(() => {
+                    msgElement.classList.add('hidden');
+                }, 5000);
+            })
+            .catch(err => {
+                alert('送信に失敗しました。');
+                msgElement.classList.add('hidden');
+            });
         }
 
         function changeColor(colorHex) {
