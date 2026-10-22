@@ -1,19 +1,73 @@
 import json
 import os
 
-# 本来はここで公式サイトやまとめサイトをスクレイピング（自動取得）します。
-# ※まずは動作テスト用に最新のツアー日程データを自動生成するコードにしています。
 def fetch_live_events():
     events = [
-        {"date": "2026-11-15", "title": "ドームツアー 2026（東京ドーム）", "status": "当落発表済"},
-        {"date": "2026-12-05", "title": "ドームツアー 2026（バンテリンドーム）", "status": "一般発売中"},
-        {"date": "2026-12-24", "title": "ドームツアー 2026（京セラドーム）", "status": "申込受付中"},
+        # Snow Man
+        {
+            "group": "Snow Man", 
+            "category": "ライブ",
+            "date": "2026-11-15", 
+            "title": "Snow Man Dome Tour 2026", 
+            "venue": "東京ドーム", 
+            "open_time": "16:00",
+            "start_time": "18:00",
+            "status": "当落発表済",
+            "notice": ""
+        },
+        {
+            "group": "Snow Man", 
+            "category": "メディア",
+            "date": "2026-11-18", 
+            "title": "〇〇テレビ「音楽特番」生出演", 
+            "venue": "テレビ放送", 
+            "open_time": "19:00",
+            "start_time": "19:00",
+            "status": "放送予定",
+            "notice": "⚠️ 放送時間が変更になる可能性があります"
+        },
+        
+        # SixTONES
+        {
+            "group": "SixTONES", 
+            "category": "ライブ",
+            "date": "2026-11-20", 
+            "title": "SixTONES LIVE TOUR 2026", 
+            "venue": "横浜アリーナ", 
+            "open_time": "17:30",
+            "start_time": "18:30",
+            "status": "受付中",
+            "notice": ""
+        },
+        {
+            "group": "SixTONES", 
+            "category": "メディア",
+            "date": "2026-11-22", 
+            "title": "ラジオ「SixTONESのオールナイトニッポン」", 
+            "venue": "ラジオ・配信", 
+            "open_time": "23:30",
+            "start_time": "23:30",
+            "status": "レギュラー",
+            "notice": ""
+        },
+        
+        # King & Prince
+        {
+            "group": "King & Prince", 
+            "category": "ライブ",
+            "date": "2026-11-28", 
+            "title": "King & Prince LIVE TOUR 2026", 
+            "venue": "マリンメッセ福岡", 
+            "open_time": "16:30",
+            "start_time": "17:30",
+            "status": "一般発売中",
+            "notice": ""
+        }
     ]
     
-    # events.json として保存
     with open("events.json", "w", encoding="utf-8") as f:
         json.dump(events, f, ensure_ascii=False, indent=2)
-    print("最新イベント情報を更新しました！")
+    print("最新のスケジュール情報を更新しました！")
 
 if __name__ == "__main__":
     fetch_live_events()
