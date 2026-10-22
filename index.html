@@ -429,14 +429,30 @@
                 return;
             }
 
-            const repoUrl = "https://github.com/leafto324/live-support-tool/issues/new";
-            const issueTitle = encodeURIComponent(`【グループ追加リクエスト】${value}`);
-            const issueBody = encodeURIComponent(`新規グループ追加のリクエストがありました。\n\n■グループ名: ${value}`);
-            
-            window.open(`${repoUrl}?title=${issueTitle}&body=${issueBody}`, '_blank');
+            // 先ほどGASで取得したウェブアプリURL
+            const gasUrl = "ここにコピーしたウェブアプリのURLを貼り付け";
 
-            document.getElementById('requestMsg').classList.remove('hidden');
-            input.value = '';
+            const msgElement = document.getElementById('requestMsg');
+            msgElement.textContent = "送信中...";
+            msgElement.classList.remove('hidden');
+
+            // 裏側でGoogle Apps Script(API)にデータを送信
+            fetch(gasUrl, {
+                method: "POST",
+                mode: "no-cors",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ groupName: value })
+            })
+            .then(() => {
+                msgElement.textContent = "リクエストを送信しました！確認後に反映されます。";
+                input.value = '';
+            })
+            .catch(err => {
+                alert('送信に失敗しました。時間をおいて再度お試しください。');
+                msgElement.classList.add('hidden');
+            });
         }
 
         function changeColor(colorHex) {
